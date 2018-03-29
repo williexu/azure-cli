@@ -3,6 +3,10 @@
 Release History
 ===============
 
+0.3.19
+++++++
+* Add id parameters to be used by completers.
+
 0.3.18
 ++++++
 * Completions kick in as soon as command table loading is done.

@@ -7,9 +7,6 @@
 import sys
 import yaml
 from knack.help_files import helps
-from azure.cli.testsdk import TestCli
-from azure.cli.core.util import get_all_help, create_invoker_and_load_cmds_and_args
-from azure.cli.core.commands.arm import add_id_parameters
 from .linter import Linter
 
 
@@ -26,6 +23,10 @@ def define_arguments(parser):
 
 
 def main(args):
+    from azure.cli.testsdk import TestCli
+    from azure.cli.core.util import get_all_help, create_invoker_and_load_cmds_and_args
+    from azure.cli.core.commands.arm import add_id_parameters
+
     print('Initializing linter with command table and help files...')
     # setup CLI to enable command loader
     az_cli = TestCli()
