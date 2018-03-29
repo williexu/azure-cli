@@ -14,5 +14,4 @@ pip install -qqq -e ./tools
 [ -d privates ] && pip install -qqq privates/*.whl
 pip install -qqq $ALL_MODULES
 
-
 azdev cli-lint
