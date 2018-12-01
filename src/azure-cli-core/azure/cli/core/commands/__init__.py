@@ -278,7 +278,6 @@ class AzCliCommandInvoker(CommandInvoker):
         # TODO: This fundamentally alters the way Knack.invocation works here. Cannot be customized
         # with an event. Would need to be customized via inheritance.
 
-        expanded_args = list(_explode_list_args(parsed_args))
         cmd = parsed_args.func
         self.cli_ctx.data['command'] = parsed_args.command
         self.cli_ctx.data['safe_params'] = [(p.split('=', 1)[0] if p.startswith('--') else p[:2]) for p in args if
@@ -304,31 +303,39 @@ class AzCliCommandInvoker(CommandInvoker):
         self.resolve_warnings(cmd, parsed_args)
         self.resolve_confirmation(cmd, parsed_args)
 
-        results = []
-        for expanded_arg in expanded_args:
+        jobs = []
+        import copy
+        for expanded_arg in _explode_list_args(parsed_args):
+            cmd_copy = copy.copy(cmd)
+            cmd_copy.cli_ctx = copy.copy(cmd.cli_ctx)
+            cmd_copy.cli_ctx.data = copy.deepcopy(cmd.cli_ctx.data)
             if hasattr(expanded_arg, 'cmd'):
-                expanded_arg.cmd = cmd
+                expanded_arg.cmd = cmd_copy
 
             if hasattr(expanded_arg, '_subscription'):
-                self.cli_ctx.data['subscription_id'] = expanded_arg._subscription  # pylint: disable=protected-access
+                cmd.cli_ctx.data['subscription_id'] = expanded_arg._subscription  # pylint: disable=protected-access
 
             self._validation(expanded_arg)
+            jobs.append((expanded_arg, cmd_copy))
 
+        
+        import threading
+        results = []
+        for expanded_arg, cmd_copy in jobs:
             params = self._filter_params(expanded_arg)
-
             try:
-                result = cmd(params)
-                if cmd.supports_no_wait and getattr(expanded_arg, 'no_wait', False):
+                result = cmd_copy(params)
+                if cmd_copy.supports_no_wait and getattr(expanded_arg, 'no_wait', False):
                     result = None
-                elif cmd.no_wait_param and getattr(expanded_arg, cmd.no_wait_param, False):
+                elif cmd_copy.no_wait_param and getattr(expanded_arg, cmd_copy.no_wait_param, False):
                     result = None
 
-                transform_op = cmd.command_kwargs.get('transform', None)
+                transform_op = cmd_copy.command_kwargs.get('transform', None)
                 if transform_op:
                     result = transform_op(result)
 
                 if _is_poller(result):
-                    result = LongRunningOperation(self.cli_ctx, 'Starting {}'.format(cmd.name))(result)
+                    result = LongRunningOperation(self.cli_ctx, 'Starting {}'.format(cmd_copy.name))(result)
                 elif _is_paged(result):
                     result = list(result)
 
@@ -339,8 +346,8 @@ class AzCliCommandInvoker(CommandInvoker):
                 results.append(result)
 
             except Exception as ex:  # pylint: disable=broad-except
-                if cmd.exception_handler:
-                    cmd.exception_handler(ex)
+                if cmd_copy.exception_handler:
+                    cmd_copy.exception_handler(ex)
                     return CommandResultItem(None, exit_code=1, error=ex)
                 else:
                     six.reraise(*sys.exc_info())
