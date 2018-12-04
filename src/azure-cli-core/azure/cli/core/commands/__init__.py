@@ -309,8 +309,7 @@ class AzCliCommandInvoker(CommandInvoker):
             cmd_copy = copy.copy(cmd)
             cmd_copy.cli_ctx = copy.copy(cmd.cli_ctx)
             cmd_copy.cli_ctx.data = copy.deepcopy(cmd.cli_ctx.data)
-            if hasattr(expanded_arg, 'cmd'):
-                expanded_arg.cmd = cmd_copy
+            expanded_arg.cmd = cmd_copy
 
             if hasattr(expanded_arg, '_subscription'):
                 cmd_copy.cli_ctx.data['subscription_id'] = expanded_arg._subscription  # pylint: disable=protected-access
@@ -323,7 +322,7 @@ class AzCliCommandInvoker(CommandInvoker):
         def _run_job(expanded_arg, cmd_copy):
             params = self._filter_params(expanded_arg)
             try:
-                result = cmd_copy(params, cli_ctx=cmd_copy.cli_ctx)
+                result = cmd_copy(params)
                 if cmd_copy.supports_no_wait and getattr(expanded_arg, 'no_wait', False):
                     result = None
                 elif cmd_copy.no_wait_param and getattr(expanded_arg, cmd_copy.no_wait_param, False):
