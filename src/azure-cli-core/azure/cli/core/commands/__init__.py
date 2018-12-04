@@ -11,6 +11,7 @@ import logging as logs
 import os
 import sys
 import time
+import copy
 from importlib import import_module
 import six
 
@@ -304,7 +305,6 @@ class AzCliCommandInvoker(CommandInvoker):
         self.resolve_confirmation(cmd, parsed_args)
 
         jobs = []
-        import copy
         for expanded_arg in _explode_list_args(parsed_args):
             cmd_copy = copy.copy(cmd)
             cmd_copy.cli_ctx = copy.copy(cmd.cli_ctx)
@@ -317,8 +317,6 @@ class AzCliCommandInvoker(CommandInvoker):
             self._validation(expanded_arg)
             jobs.append((expanded_arg, cmd_copy))
 
-
-        from concurrent.futures import ThreadPoolExecutor, as_completed
         def _run_job(expanded_arg, cmd_copy):
             params = self._filter_params(expanded_arg)
             try:
@@ -348,6 +346,7 @@ class AzCliCommandInvoker(CommandInvoker):
                 else:
                     six.reraise(*sys.exc_info())
 
+        from concurrent.futures import ThreadPoolExecutor, as_completed
         tasks, results, exceptions = [], [], []
         with ThreadPoolExecutor(max_workers=10) as executor:
             for expanded_arg, cmd_copy in jobs:
