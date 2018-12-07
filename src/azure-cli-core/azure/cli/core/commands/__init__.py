@@ -358,11 +358,15 @@ class AzCliCommandInvoker(CommandInvoker):
                     exceptions.append(ex)
 
         # handle exceptions
-        if exceptions:
+        if len(exceptions) == 1 and not results:
+            raise exceptions[0]
+        elif exceptions:
             for exception in exceptions:
                 logger.warning(str(exception))
             if not results:
                 return CommandResultItem(None, exit_code=1, error=CLIError('Encountered more than one exception.'))
+            else:
+                logger.warning('Encountered more than one exception.')
 
         if results and len(results) == 1:
             results = results[0]
