@@ -439,8 +439,7 @@ class AzCommandsLoader(CLICommandsLoader):  # pylint: disable=too-many-instance-
                 client_arg_name = resolve_client_arg_name(operation, kwargs)
                 if client_arg_name in op_args:
                     command_args[client_arg_name] = client
-            result = op(**command_args)
-            return result
+            return op(**command_args)
 
         def default_arguments_loader():
             op = handler or self.get_op_handler(operation)
