@@ -426,9 +426,9 @@ class AzCommandsLoader(CLICommandsLoader):  # pylint: disable=too-many-instance-
             from azure.cli.core.util import get_arg_list, augment_no_wait_handler_args
             from azure.cli.core.commands.client_factory import resolve_client_arg_name
 
-            cmd = command_args.pop('cmd')
             op = handler or self.get_op_handler(operation)
             op_args = get_arg_list(op)
+            cmd = command_args.get('cmd') if 'cmd' in op_args else command_args.pop('cmd')
 
             client = client_factory(cmd.cli_ctx, command_args) if client_factory else None
             supports_no_wait = kwargs.get('supports_no_wait', None)
