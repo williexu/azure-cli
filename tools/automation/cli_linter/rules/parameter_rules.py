@@ -9,6 +9,7 @@ from ..linter import RuleError
 
 @parameter_rule
 def missing_parameter_help(linter, command_name, parameter_name):
+    print("command name: ", command_name, "param name: ", parameter_name)
     if not linter.get_parameter_help(command_name, parameter_name) and not linter.command_expired(command_name):
         raise RuleError('Missing help')
 
