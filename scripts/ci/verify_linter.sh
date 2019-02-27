@@ -7,7 +7,7 @@ set -ev
 ls -la $share_folder/build
 
 ALL_MODULES=`find $share_folder/build/ -name "*.whl"`
-
+echo ALL_MODULES
 pip install -e ./tools
 [ -d privates ] && pip install -qqq privates/*.whl
 pip install $ALL_MODULES
